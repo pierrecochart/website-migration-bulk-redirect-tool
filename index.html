@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Pro: Bulk 301 Redirect Generator | Pierre Cochart</title>
+    <meta name="description" content="Generate bulk 301 redirects for Apache, Nginx, and WordPress. Upload CSVs, map headers, and simplify site migrations. Fast, free, and secure.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 3rem; }
+        h1 {
+            font-size: 2.75rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: var(--secondary); font-size: 1.1rem; }
+
+        /* Configuration & Upload Bar */
+        .config-bar {
+            background: var(--card); border: 1px solid var(--border); border-radius: 1rem;
+            padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .config-item { display: flex; flex-direction: column; gap: 0.5rem; }
+        .config-item label { font-size: 0.75rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; }
+        select, .file-input-wrapper { padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; }
+        
+        .upload-area { border: 2px dashed var(--border); padding: 0.5rem; text-align: center; cursor: pointer; transition: 0.2s; }
+        .upload-area:hover { border-color: var(--primary); background: #f1f5f9; }
+
+        /* Mapping Panel */
+        #mapping-panel {
+            display: none; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 1rem;
+            padding: 1.5rem; margin-bottom: 2rem; animation: slideDown 0.3s ease-out;
+        }
+        .mapping-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; }
+
+        /* Workspace */
+        .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .panel {
+            background: var(--card); border-radius: 1.25rem; border: 1px solid var(--border);
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .panel-header {
+            padding: 1rem 1.5rem; background: #f1f5f9; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .panel-title { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: var(--secondary); }
+
+        textarea {
+            width: 100%; height: 400px; padding: 1.5rem; border: none; outline: none;
+            font-family: 'Monaco', 'Consolas', monospace; font-size: 0.85rem; resize: none;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem; background: var(--text); color: white; border: none;
+            border-radius: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { background: black; transform: translateY(-1px); }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .footer-cta { margin-top: 5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 3rem; }
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 0.75rem 1.5rem;
+            border-radius: 2rem; font-size: 0.9rem; opacity: 0; transition: 0.3s; z-index: 100;
+        }
+        #toast.show { opacity: 1; transform: translateY(-10px); }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 850px) { .workspace { grid-template-columns: 1fr; } .mapping-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Migration Pro</h1>
+            <p class="subtitle">Bulk redirect generator with smart CSV mapping.</p>
+        </header>
+
+        <div class="config-bar">
+            <div class="config-item">
+                <label>Server Code Type</label>
+                <select id="server-type">
+                    <option value="apache">Apache (.htaccess)</option>
+                    <option value="nginx">Nginx (.conf)</option>
+                    <option value="wp">WordPress (Redirection JSON)</option>
+                </select>
+            </div>
+            <div class="config-item">
+                <label>Quick Upload</label>
+                <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                    <span id="file-name">Click to upload CSV</span>
+                    <input type="file" id="file-input" hidden accept=".csv">
+                </div>
+            </div>
+        </div>
+
+        <div id="mapping-panel">
+            <p style="font-weight: 800; margin-bottom: 1rem; color: var(--primary);">CSV Headers Detected</p>
+            <div class="mapping-grid">
+                <div class="config-item">
+                    <label>Source (Old URL)</label>
+                    <select id="map-source"></select>
+                </div>
+                <div class="config-item">
+                    <label>Destination (New URL)</label>
+                    <select id="map-dest"></select>
+                </div>
+                <button class="btn btn-primary" onclick="processMappedCsv()">Generate From File</button>
+            </div>
+        </div>
+
+        <div class="workspace">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Manual Input</span>
+                    <span style="font-size: 0.7rem; color: var(--secondary);">Paste: Old [Tab] New</span>
+                </div>
+                <textarea id="input-data" placeholder="/old-path /new-path&#10;/about-us /about"></textarea>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title" id="output-label">Apache Config</span>
+                    <button class="btn" onclick="copyCode()">Copy Code</button>
+                </div>
+                <textarea id="output-code" readonly placeholder="Redirect code will appear here..."></textarea>
+            </div>
+        </div>
+
+        <footer class="footer-cta">
+            <a href="https://www.buymeacoffee.com/PierreCochart" target="_blank">
+                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px; width: 217px;">
+            </a>
+            <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--secondary);">Built by Pierre Cochart</p>
+        </footer>
+    </div>
+
+    <div id="toast">Code copied to clipboard!</div>
+
+    <script>
+        const input = document.getElementById('input-data');
+        const output = document.getElementById('output-code');
+        const serverType = document.getElementById('server-type');
+        const fileInput = document.getElementById('file-input');
+        const mappingPanel = document.getElementById('mapping-panel');
+        const mapSource = document.getElementById('map-source');
+        const mapDest = document.getElementById('map-dest');
+        const toast = document.getElementById('toast');
+
+        let csvData = [];
+
+        // --- Manual Input Mode ---
+        input.addEventListener('input', () => generateFromText(input.value));
+        serverType.addEventListener('change', () => {
+            document.getElementById('output-label').textContent = serverType.options[serverType.selectedIndex].text;
+            if (csvData.length > 0) processMappedCsv();
+            else generateFromText(input.value);
+        });
+
+        // --- CSV Upload Mode ---
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('file-name').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target.result;
+                const rows = text.split('\n').map(row => row.split(','));
+                
+                if (rows.length < 2) return;
+                
+                const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
+                csvData = rows.slice(1);
+
+                // Populate mapping dropdowns
+                mapSource.innerHTML = '';
+                mapDest.innerHTML = '';
+                headers.forEach((h, i) => {
+                    const opt = `<option value="${i}">${h}</option>`;
+                    mapSource.innerHTML += opt;
+                    mapDest.innerHTML += opt;
+                });
+
+                // Auto-suggest mappings based on common SEO terms
+                headers.forEach((h, i) => {
+                    const cleanH = h.toLowerCase();
+                    if (cleanH.includes('old') || cleanH.includes('source') || cleanH.includes('address')) mapSource.value = i;
+                    if (cleanH.includes('new') || cleanH.includes('dest') || cleanH.includes('target')) mapDest.value = i;
+                });
+
+                mappingPanel.style.display = 'block';
+            };
+            reader.readAsText(file);
+        };
+
+        function processMappedCsv() {
+            const sIdx = mapSource.value;
+            const dIdx = mapDest.value;
+            let textData = "";
+            
+            csvData.forEach(row => {
+                if (row[sIdx] && row[dIdx]) {
+                    textData += `${row[sIdx].trim()} ${row[dIdx].trim()}\n`;
+                }
+            });
+            generateFromText(textData);
+        }
+
+        // --- Core Engine ---
+        function generateFromText(rawText) {
+            const lines = rawText.split('\n');
+            const type = serverType.value;
+            let result = "";
+
+            if (type === 'apache') result += "RewriteEngine On\n\n";
+            let wpArray = [];
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                const parts = line.split(/\s+|,/); // Split by space, tab, or comma
+
+                if (parts.length >= 2) {
+                    let oldUrl = parts[0].trim().replace(/"/g, '');
+                    let newUrl = parts[1].trim().replace(/"/g, '');
+                    let oldPath = oldUrl.replace(/^https?:\/\/[^\/]+/, '');
+                    if (!oldPath.startsWith('/')) oldPath = '/' + oldPath;
+
+                    if (type === 'apache') result += `Redirect 301 ${oldPath} ${newUrl}\n`;
+                    else if (type === 'nginx') result += `rewrite ^${oldPath}$ ${newUrl} permanent;\n`;
+                    else if (type === 'wp') {
+                        wpArray.push({
+                            "url": oldPath,
+                            "action_data": {"url": newUrl},
+                            "action_code": 301,
+                            "match_url": "regex"
+                        });
+                    }
+                }
+            });
+
+            if (type === 'wp') {
+                output.value = JSON.stringify({ "plugin": "redirection", "version": "1.0", "redirects": wpArray }, null, 2);
+            } else {
+                output.value = result;
+            }
+        }
+
+        function copyCode() {
+            if (!output.value) return;
+            navigator.clipboard.writeText(output.value).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+    </script>
+</body>
+</html>
