@@ -3,32 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="canonical" href="https://pierrecochart.github.io/website-migration-bulk-redirect-tool/">
     <title>Migration Pro: Bulk 301 Redirect Generator | Pierre Cochart</title>
     <meta name="description" content="Generate bulk 301 redirects for Apache, Nginx, and WordPress. Upload CSVs, map headers, and simplify site migrations. Fast, free, and secure.">
-    
+    <meta property="og:title" content="Migration Pro: Bulk 301 Redirect Generator">
+    <meta property="og:description" content="Generate bulk 301 redirects for Apache, Nginx, or WordPress from a CSV or pasted list. Free and client-side.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pierrecochart.github.io/website-migration-bulk-redirect-tool/">
+    <meta property="og:image" content="https://placehold.co/1200x630/0F6E8C/FAFAF7?font=roboto&text=Migration+Pro">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://placehold.co/1200x630/0F6E8C/FAFAF7?font=roboto&text=Migration+Pro">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-            --secondary: #64748b;
-            --border: #e2e8f0;
+            --primary: #0F6E8C;
+            --primary-dark: #0B5570;
+            --bg: #EFEEE7;
+            --card: #FAFAF7;
+            --text: #191D22;
+            --secondary: #565C64;
+            --border: #DAD7CC;
+            --output-bg: #191D22;
+
+            /* Sitewide aliases, used by the header/footer/SEO block */
+            --paper: var(--card);
+            --panel: var(--bg);
+            --ink: var(--text);
+            --ink-soft: var(--secondary);
+            --line: var(--border);
+            --blueprint: var(--primary);
+            --blueprint-dark: var(--primary-dark);
+            --amber: #E8A33D;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); padding: 2rem 1rem; line-height: 1.6; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        body { font-family: var(--font-body); background-color: var(--bg); color: var(--text); padding: 0 0 2rem; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
 
-        header { text-align: center; margin-bottom: 3rem; }
+        header.page-header { text-align: center; margin: 2.5rem 0 3rem; }
         h1 {
-            font-size: 2.75rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+            font-family: var(--font-display);
+            font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #57A9C4 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .subtitle { color: var(--secondary); font-size: 1.1rem; }
@@ -37,18 +60,19 @@
         .config-bar {
             background: var(--card); border: 1px solid var(--border); border-radius: 1rem;
             padding: 1.5rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            gap: 1.5rem;
         }
         .config-item { display: flex; flex-direction: column; gap: 0.5rem; }
-        .config-item label { font-size: 0.75rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; }
-        select, .file-input-wrapper { padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; }
-        
-        .upload-area { border: 2px dashed var(--border); padding: 0.5rem; text-align: center; cursor: pointer; transition: 0.2s; }
-        .upload-area:hover { border-color: var(--primary); background: #f1f5f9; }
+        .config-item label { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+        select, .file-input-wrapper { padding: 0.6rem; border-radius: 0.5rem; border: 1px solid var(--border); font-family: var(--font-body); font-size: 0.9rem; background: var(--card); color: var(--text); }
+        select:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); outline: none; }
+
+        .upload-area { border: 2px dashed var(--border); padding: 0.5rem; text-align: center; cursor: pointer; transition: 0.2s; color: var(--ink-soft); }
+        .upload-area:hover { border-color: var(--primary); background: #DCEAEE; }
 
         /* Mapping Panel */
         #mapping-panel {
-            display: none; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 1rem;
+            display: none; background: #DCEAEE; border: 1px solid #B7D6DF; border-radius: 1rem;
             padding: 1.5rem; margin-bottom: 2rem; animation: slideDown 0.3s ease-out;
         }
         .mapping-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; }
@@ -57,20 +81,22 @@
         .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
         .panel {
             background: var(--card); border-radius: 1.25rem; border: 1px solid var(--border);
-            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; overflow: hidden;
         }
         .panel-header {
-            padding: 1rem 1.5rem; background: #f1f5f9; border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem; background: var(--bg); border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .panel-title { font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: var(--secondary); }
+        .panel-title { font-family: var(--font-mono); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--secondary); }
 
         textarea {
             width: 100%; height: 400px; padding: 1.5rem; border: none; outline: none;
-            font-family: 'Monaco', 'Consolas', monospace; font-size: 0.85rem; resize: none;
+            font-family: var(--font-mono); font-size: 0.85rem; resize: none;
+            background: var(--card); color: var(--text);
         }
 
         .btn {
+            font-family: var(--font-body);
             padding: 0.6rem 1.2rem; background: var(--text); color: white; border: none;
             border-radius: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
         }
@@ -78,203 +104,544 @@
         .btn-primary { background: var(--primary); }
         .btn-primary:hover { background: var(--primary-dark); }
 
-        .footer-cta { margin-top: 5rem; text-align: center; border-top: 1px solid var(--border); padding-top: 3rem; }
         #toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 0.75rem 1.5rem;
-            border-radius: 2rem; font-size: 0.9rem; opacity: 0; transition: 0.3s; z-index: 100;
+            background: var(--output-bg); color: white; padding: 0.75rem 1.5rem;
+            border-radius: 2rem; font-family: var(--font-body); font-size: 0.9rem; opacity: 0; transition: 0.3s; z-index: 100;
         }
         #toast.show { opacity: 1; transform: translateY(-10px); }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 850px) { .workspace { grid-template-columns: 1fr; } .mapping-grid { grid-template-columns: 1fr; } }
+
+        /* Buy Me a Coffee card (standardised component) */
+        .bmc-card { margin-top: 3.5rem; text-align: center; border-top: 1px solid var(--line); padding-top: 2rem; }
+        .bmc-card__icon { font-size: 1.4rem; margin-bottom: 6px; }
+        .bmc-card__heading { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; color: var(--ink); margin: 0 0 6px; }
+        .bmc-card__text { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; line-height: 1.5; }
+        .bmc-card__button { display: inline-flex; align-items: center; gap: 8px; background: var(--blueprint); color: #fff; text-decoration: none; font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; padding: 10px 18px; border-radius: 6px; transition: background .15s ease; }
+        .bmc-card__button:hover { background: var(--blueprint-dark); }
+        .bmc-card__button svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* --- Site header --- */
+        .site-header { background: var(--paper); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 100; font-family: var(--font-body); }
+        .site-header__ruler { height: 4px; background-image: repeating-linear-gradient(90deg, var(--blueprint) 0 1px, transparent 1px 12px); opacity: 0.5; }
+        .site-header__inner { max-width: 1140px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+        .site-header__brand { text-decoration: none; color: var(--ink); line-height: 1.1; }
+        .site-header__eyebrow { display: block; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.14em; color: var(--blueprint); text-transform: uppercase; margin-bottom: 2px; }
+        .site-header__wordmark { display: block; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; color: var(--ink); }
+        .nav-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; padding: 8px 10px; }
+        .nav-toggle span { width: 18px; height: 2px; background: var(--ink); display: block; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+        .site-nav__list { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+        .site-nav__item { position: relative; }
+        .site-nav__link { background: none; border: none; font: inherit; font-family: var(--font-body); font-weight: 500; font-size: 0.92rem; cursor: pointer; padding: 9px 12px; color: var(--ink); text-decoration: none; display: inline-block; border-radius: 4px; }
+        .site-nav__link:hover, .site-nav__link:focus { color: var(--blueprint); background: var(--panel); }
+        .dropdown { list-style: none; margin: 0; padding: 6px; position: absolute; top: 100%; left: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 10px 28px rgba(25,29,34,0.10); min-width: 250px; opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity .15s ease, transform .15s ease, visibility .15s; }
+        .has-dropdown:hover .dropdown, .has-dropdown:focus-within .dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown li a { display: block; padding: 8px 10px; color: var(--ink); text-decoration: none; border-radius: 4px; font-size: 0.88rem; border-left: 2px solid transparent; }
+        .dropdown li a:hover, .dropdown li a:focus { background: var(--panel); border-left-color: var(--blueprint); color: var(--blueprint-dark); }
+        @media (max-width: 860px) {
+          .nav-toggle { display: flex; }
+          .site-nav { display: none; width: 100%; order: 3; }
+          .site-nav.is-open { display: block; }
+          .site-nav__list { flex-direction: column; gap: 0; }
+          .site-nav__item { width: 100%; }
+          .dropdown { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; border: none; display: none; padding-left: 10px; }
+          .has-dropdown.is-open .dropdown { display: block; }
+          .site-header__inner { flex-wrap: wrap; }
+        }
+
+        /* --- SEO content block --- */
+        .tool-content { max-width: 780px; margin: 64px auto 0; padding: 0 1rem; font-family: var(--font-body); color: var(--ink); line-height: 1.65; }
+        .tool-content h2 { font-family: var(--font-display); font-size: 1.5rem; margin: 40px 0 14px; color: var(--ink); }
+        .tool-content p { font-size: 0.98rem; color: var(--ink-soft); margin: 0 0 14px; }
+        .faq-item { position: relative; border: 1px solid var(--line); border-radius: 6px; padding: 4px 16px; margin-bottom: 10px; background: var(--paper); }
+        .faq-item::before, .faq-item::after { content: ""; position: absolute; width: 10px; height: 10px; border-color: var(--blueprint); border-style: solid; opacity: 0.6; }
+        .faq-item::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .faq-item::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+        .faq-item summary { cursor: pointer; font-weight: 600; padding: 14px 0; font-size: 0.96rem; list-style: none; }
+        .faq-item summary::-webkit-details-marker { display: none; }
+        .faq-item summary::after { content: "+"; float: right; font-family: var(--font-mono); color: var(--blueprint); }
+        .faq-item[open] summary::after { content: "–"; }
+        .faq-item p { padding-bottom: 14px; margin: 0; }
+        .related-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+        .related-tools__card { position: relative; display: block; border: 1px solid var(--line); border-radius: 6px; padding: 18px; text-decoration: none; background: var(--paper); transition: border-color .15s ease; }
+        .related-tools__card:hover { border-color: var(--blueprint); }
+        .related-tools__card::before, .related-tools__card::after { content: ""; position: absolute; width: 10px; height: 10px; border-color: var(--blueprint); border-style: solid; opacity: 0.6; }
+        .related-tools__card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .related-tools__card::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+        .related-tools__eyebrow { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blueprint); margin: 0 0 6px; }
+        .related-tools__name { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; color: var(--ink); margin: 0 0 4px; }
+        .related-tools__desc { font-size: 0.85rem; color: var(--ink-soft); margin: 0; }
+        @media (max-width: 720px) { .related-tools { grid-template-columns: 1fr; } }
+
+        /* --- Site footer --- */
+        .site-footer { background: var(--panel); border-top: 1px solid var(--line); margin-top: 60px; font-family: var(--font-body); }
+        .site-footer__cta { border-bottom: 1px solid var(--line); }
+        .site-footer__cta-inner { max-width: 1140px; margin: 0 auto; padding: 36px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+        .site-footer__cta-text { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blueprint); margin: 0 0 4px; }
+        .site-footer__cta-heading { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; color: var(--ink); margin: 0; }
+        .site-footer__cta-link { font-family: var(--font-body); font-weight: 600; font-size: 0.9rem; color: #fff; background: var(--blueprint); text-decoration: none; padding: 12px 20px; border-radius: 6px; white-space: nowrap; transition: background .15s ease; }
+        .site-footer__cta-link:hover { background: var(--blueprint-dark); }
+        .site-footer__inner { max-width: 1140px; margin: 0 auto; padding: 40px 20px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        .site-footer__col h3 { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+        .site-footer__col ul { list-style: none; margin: 0; padding: 0; }
+        .site-footer__col li { margin-bottom: 8px; }
+        .site-footer__col a { color: var(--ink); text-decoration: none; font-size: 0.9rem; }
+        .site-footer__col a:hover { color: var(--blueprint); text-decoration: underline; }
+        .site-footer__bottom { max-width: 1140px; margin: 0 auto; padding: 18px 20px 30px; border-top: 1px solid var(--line); font-size: 0.82rem; color: var(--ink-soft); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .site-footer__bottom a { color: var(--ink-soft); }
+        .site-footer__bottom a:hover { color: var(--blueprint); }
+        @media (max-width: 860px) { .site-footer__inner { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Migration Pro</h1>
-            <p class="subtitle">Bulk redirect generator with smart CSV mapping.</p>
-        </header>
+<header class="site-header">
+  <div class="site-header__ruler"></div>
+  <div class="site-header__inner">
+    <a class="site-header__brand" href="https://pierrecochart.github.io/">
+      <span class="site-header__eyebrow">Free Web Toolkit</span>
+      <span class="site-header__wordmark">Pierre Cochart</span>
+    </a>
 
-        <div class="config-bar">
-            <div class="config-item">
-                <label>Server Code Type</label>
-                <select id="server-type">
-                    <option value="apache">Apache (.htaccess)</option>
-                    <option value="nginx">Nginx (.conf)</option>
-                    <option value="wp">WordPress (Redirection JSON)</option>
-                </select>
-            </div>
-            <div class="config-item">
-                <label>Quick Upload</label>
-                <div class="upload-area" onclick="document.getElementById('file-input').click()">
-                    <span id="file-name">Click to upload CSV</span>
-                    <input type="file" id="file-input" hidden accept=".csv">
-                </div>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav">
+      <span></span><span></span><span></span>
+      <span class="sr-only">Menu</span>
+    </button>
+
+    <nav class="site-nav" id="siteNav">
+      <ul class="site-nav__list">
+        <li class="site-nav__item has-dropdown">
+          <button class="site-nav__link" aria-expanded="false">Image &amp; Media</button>
+          <ul class="dropdown">
+            <li><a href="https://pierrecochart.github.io/image-cropper/">Bulk Image Cropper</a></li>
+            <li><a href="https://pierrecochart.github.io/image-background-remover/">Image Background Remover</a></li>
+            <li><a href="https://pierrecochart.github.io/color-palette-generator/">Color Palette Generator</a></li>
+            <li><a href="https://pierrecochart.github.io/duotone-generator/">Duotone Generator</a></li>
+            <li><a href="https://pierrecochart.github.io/image-dithering-tool/">Image Dithering Tool</a></li>
+            <li><a href="https://pierrecochart.github.io/advanced-image-cropping-tool/">Advanced Image Cropper</a></li>
+            <li><a href="https://pierrecochart.github.io/image-to-webp-converter/">Image to WebP Converter</a></li>
+            <li><a href="https://pierrecochart.github.io/quickfav-favicon-maker/">QuickFav Favicon Maker</a></li>
+            <li><a href="https://pierrecochart.github.io/svg-cleaner/">SVG Cleaner</a></li>
+            <li><a href="https://pierrecochart.github.io/code-screenshot-image-creator/">Code Screenshot Generator</a></li>
+          </ul>
+        </li>
+        <li class="site-nav__item has-dropdown">
+          <button class="site-nav__link" aria-expanded="false">SEO &amp; Content</button>
+          <ul class="dropdown">
+            <li><a href="https://pierrecochart.github.io/canonical-generating-tool/">Canonical Generator</a></li>
+            <li><a href="https://pierrecochart.github.io/useful-links-builder/">Useful Links Builder</a></li>
+            <li><a href="https://pierrecochart.github.io/hreflang-generator-tool/">Hreflang Generator</a></li>
+            <li><a href="https://pierrecochart.github.io/website-migration-bulk-redirect-tool/">Bulk Redirect Mapper</a></li>
+            <li><a href="https://pierrecochart.github.io/google-dork-search-operator-tool/">Google Dork Builder</a></li>
+            <li><a href="https://pierrecochart.github.io/keyword-mixer-tool/">Keyword Mixer</a></li>
+            <li><a href="https://pierrecochart.github.io/SERP-Snippet-Viewer-Optimiser/">SERP Simulator</a></li>
+            <li><a href="https://pierrecochart.github.io/seo-bulk-header-audit-tool/">SEO Header Audit</a></li>
+            <li><a href="https://pierrecochart.github.io/faq-generator/">FAQ &amp; Schema Generator</a></li>
+            <li><a href="https://pierrecochart.github.io/internal-link-weaver/">Internal Link Weaver</a></li>
+            <li><a href="https://pierrecochart.github.io/word-character-counter-read-time/">Word &amp; Character Counter</a></li>
+            <li><a href="https://pierrecochart.github.io/ai-blog-summarizer-button-generator/">AI Blog Summarizer</a></li>
+          </ul>
+        </li>
+        <li class="site-nav__item has-dropdown">
+          <button class="site-nav__link" aria-expanded="false">PPC &amp; Analytics</button>
+          <ul class="dropdown">
+            <li><a href="https://pierrecochart.github.io/google-adwords-campaign-architect-tool/">AdWords Architect</a></li>
+            <li><a href="https://pierrecochart.github.io/roas-modeller/">ROAS Modeller</a></li>
+            <li><a href="https://pierrecochart.github.io/statistical-significance-calculator/">Significance Calculator</a></li>
+          </ul>
+        </li>
+        <li class="site-nav__item has-dropdown">
+          <button class="site-nav__link" aria-expanded="false">Development</button>
+          <ul class="dropdown">
+            <li><a href="https://pierrecochart.github.io/document-html-link-remover/">Link Remover Tool</a></li>
+            <li><a href="https://pierrecochart.github.io/word-doc-content-sanitizer/">Word Content Sanitizer</a></li>
+            <li><a href="https://pierrecochart.github.io/github-website-builder/">GitHub Website Builder</a></li>
+            <li><a href="https://pierrecochart.github.io/html-editor/">HTML Editor</a></li>
+            <li><a href="https://pierrecochart.github.io/app-store-event-previewer/">App Store Event Previewer</a></li>
+          </ul>
+        </li>
+        <li class="site-nav__item">
+          <a class="site-nav__link" href="https://searchfoundry.co.uk" target="_blank" rel="noopener">SEO/PPC Help ↗</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+    <header class="page-header">
+        <h1>Migration Pro</h1>
+        <p class="subtitle">Bulk redirect generator with smart CSV mapping.</p>
+    </header>
+
+    <div class="config-bar">
+        <div class="config-item">
+            <label>Server Code Type</label>
+            <select id="server-type">
+                <option value="apache">Apache (.htaccess)</option>
+                <option value="nginx">Nginx (.conf)</option>
+                <option value="wp">WordPress (Redirection JSON)</option>
+            </select>
+        </div>
+        <div class="config-item">
+            <label>Quick Upload</label>
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <span id="file-name">Click to upload CSV</span>
+                <input type="file" id="file-input" hidden accept=".csv">
             </div>
         </div>
-
-        <div id="mapping-panel">
-            <p style="font-weight: 800; margin-bottom: 1rem; color: var(--primary);">CSV Headers Detected</p>
-            <div class="mapping-grid">
-                <div class="config-item">
-                    <label>Source (Old URL)</label>
-                    <select id="map-source"></select>
-                </div>
-                <div class="config-item">
-                    <label>Destination (New URL)</label>
-                    <select id="map-dest"></select>
-                </div>
-                <button class="btn btn-primary" onclick="processMappedCsv()">Generate From File</button>
-            </div>
-        </div>
-
-        <div class="workspace">
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title">Manual Input</span>
-                    <span style="font-size: 0.7rem; color: var(--secondary);">Paste: Old [Tab] New</span>
-                </div>
-                <textarea id="input-data" placeholder="/old-path /new-path&#10;/about-us /about"></textarea>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span class="panel-title" id="output-label">Apache Config</span>
-                    <button class="btn" onclick="copyCode()">Copy Code</button>
-                </div>
-                <textarea id="output-code" readonly placeholder="Redirect code will appear here..."></textarea>
-            </div>
-        </div>
-
-        <footer class="footer-cta">
-            <a href="https://www.buymeacoffee.com/PierreCochart" target="_blank">
-                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 50px; width: 217px;">
-            </a>
-            <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--secondary);">Built by Pierre Cochart</p>
-        </footer>
     </div>
 
-    <div id="toast">Code copied to clipboard!</div>
+    <div id="mapping-panel">
+        <p style="font-family: var(--font-display); font-weight: 700; margin-bottom: 1rem; color: var(--primary);">CSV Headers Detected</p>
+        <div class="mapping-grid">
+            <div class="config-item">
+                <label>Source (Old URL)</label>
+                <select id="map-source"></select>
+            </div>
+            <div class="config-item">
+                <label>Destination (New URL)</label>
+                <select id="map-dest"></select>
+            </div>
+            <button class="btn btn-primary" onclick="processMappedCsv()">Generate From File</button>
+        </div>
+    </div>
 
-    <script>
-        const input = document.getElementById('input-data');
-        const output = document.getElementById('output-code');
-        const serverType = document.getElementById('server-type');
-        const fileInput = document.getElementById('file-input');
-        const mappingPanel = document.getElementById('mapping-panel');
-        const mapSource = document.getElementById('map-source');
-        const mapDest = document.getElementById('map-dest');
-        const toast = document.getElementById('toast');
+    <div class="workspace">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Manual Input</span>
+                <span style="font-size: 0.7rem; color: var(--secondary);">Paste: Old [Tab] New</span>
+            </div>
+            <textarea id="input-data" placeholder="/old-path /new-path&#10;/about-us /about"></textarea>
+        </div>
 
-        let csvData = [];
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title" id="output-label">Apache Config</span>
+                <button class="btn" onclick="copyCode()">Copy Code</button>
+            </div>
+            <textarea id="output-code" readonly placeholder="Redirect code will appear here..."></textarea>
+        </div>
+    </div>
 
-        // --- Manual Input Mode ---
-        input.addEventListener('input', () => generateFromText(input.value));
-        serverType.addEventListener('change', () => {
-            document.getElementById('output-label').textContent = serverType.options[serverType.selectedIndex].text;
-            if (csvData.length > 0) processMappedCsv();
-            else generateFromText(input.value);
+    <div class="bmc-card">
+        <div class="bmc-card__icon">☕</div>
+        <p class="bmc-card__heading">This tool is free to use</p>
+        <p class="bmc-card__text">If it saved you some time, consider buying me a coffee to support future updates.</p>
+        <a class="bmc-card__button" href="https://www.buymeacoffee.com/PierreCochart" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10h14a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 12h1a2 2 0 0 1 2 2 3 3 0 0 1-3 3h-1" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 3c-.5 1-.5 1.8 0 2.5M12 3c-.5 1-.5 1.8 0 2.5M16 3c-.5 1-.5 1.8 0 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Buy me a coffee
+        </a>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SEO CONTENT BLOCK -->
+<!-- ============================================================ -->
+<section class="tool-content">
+
+  <h2>What does Migration Pro do?</h2>
+  <p>Migration Pro generates bulk 301 redirect code for Apache (.htaccess), Nginx, or WordPress (in a format compatible with the Redirection plugin), from either a pasted list of old/new URL pairs or an uploaded CSV. For CSVs, it detects the column headers and lets you map which columns are the source and destination URLs, auto-suggesting a match based on common naming patterns like "old", "source", "new", or "target".</p>
+  <p>This is built for site migrations and URL restructuring — the moment where dozens or hundreds of old URLs need mapping to their new equivalents, and hand-writing that many redirect rules invites typos. Paste or upload your mapping, pick your server type, and copy the generated code straight into your server config or WordPress plugin.</p>
+
+  <h2>Frequently asked questions</h2>
+
+  <div class="faq-item">
+    <details>
+      <summary>Is Migration Pro free to use?</summary>
+      <p>Yes, completely free with no account or usage limit.</p>
+    </details>
+  </div>
+
+  <div class="faq-item">
+    <details>
+      <summary>What server formats are supported?</summary>
+      <p>Apache (.htaccess-style <code>Redirect 301</code> rules), Nginx (<code>rewrite</code> directives), and WordPress in the JSON format used by the Redirection plugin.</p>
+    </details>
+  </div>
+
+  <div class="faq-item">
+    <details>
+      <summary>Can I upload a CSV instead of typing manually?</summary>
+      <p>Yes — upload a CSV and the tool detects your column headers, letting you map which columns hold the old and new URLs before generating the redirect code.</p>
+    </details>
+  </div>
+
+  <div class="faq-item">
+    <details>
+      <summary>Is my CSV data uploaded anywhere?</summary>
+      <p>No. CSV parsing and code generation both happen locally in your browser — nothing is sent to a server.</p>
+    </details>
+  </div>
+
+  <div class="faq-item">
+    <details>
+      <summary>Does this apply the redirects for me?</summary>
+      <p>No — it generates the code you need, but you still need to add it to your server configuration (or import the JSON into the Redirection plugin for WordPress) and deploy it yourself.</p>
+    </details>
+  </div>
+
+  <h2>Related tools</h2>
+  <div class="related-tools">
+    <a class="related-tools__card" href="https://pierrecochart.github.io/canonical-generating-tool/">
+      <p class="related-tools__eyebrow">SEO &amp; Content</p>
+      <p class="related-tools__name">Canonical Generator</p>
+      <p class="related-tools__desc">Set correct canonical tags on your new URLs after migrating.</p>
+    </a>
+    <a class="related-tools__card" href="https://pierrecochart.github.io/useful-links-builder/">
+      <p class="related-tools__eyebrow">SEO &amp; Content</p>
+      <p class="related-tools__name">Useful Links Builder</p>
+      <p class="related-tools__desc">Build a reference list of your new site's key URLs.</p>
+    </a>
+    <a class="related-tools__card" href="https://pierrecochart.github.io/internal-link-weaver/">
+      <p class="related-tools__eyebrow">SEO &amp; Content</p>
+      <p class="related-tools__name">Internal Link Weaver</p>
+      <p class="related-tools__desc">Update internal links across your content to point at the new URLs.</p>
+    </a>
+  </div>
+
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Migration Pro free to use?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely free with no account or usage limit." } },
+    { "@type": "Question", "name": "What server formats are supported?", "acceptedAnswer": { "@type": "Answer", "text": "Apache (.htaccess-style Redirect 301 rules), Nginx (rewrite directives), and WordPress in the JSON format used by the Redirection plugin." } },
+    { "@type": "Question", "name": "Can I upload a CSV instead of typing manually?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — upload a CSV and the tool detects your column headers, letting you map which columns hold the old and new URLs before generating the redirect code." } },
+    { "@type": "Question", "name": "Is my CSV data uploaded anywhere?", "acceptedAnswer": { "@type": "Answer", "text": "No. CSV parsing and code generation both happen locally in your browser — nothing is sent to a server." } },
+    { "@type": "Question", "name": "Does this apply the redirects for me?", "acceptedAnswer": { "@type": "Answer", "text": "No — it generates the code you need, but you still need to add it to your server configuration and deploy it yourself." } }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Migration Pro",
+  "url": "https://pierrecochart.github.io/website-migration-bulk-redirect-tool/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any (runs in browser)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" },
+  "creator": { "@type": "Person", "name": "Pierre Cochart", "url": "https://pierrecochart.github.io/" }
+}
+</script>
+
+<!-- ============================================================ -->
+<!-- SITE FOOTER -->
+<!-- ============================================================ -->
+<footer class="site-footer">
+  <div class="site-footer__cta">
+    <div class="site-footer__cta-inner">
+      <div>
+        <p class="site-footer__cta-text">Need more than a free tool?</p>
+        <p class="site-footer__cta-heading">The Search Foundry runs SEO &amp; PPC strategy for growing brands.</p>
+      </div>
+      <a class="site-footer__cta-link" href="https://searchfoundry.co.uk" target="_blank" rel="noopener">Talk to the agency ↗</a>
+    </div>
+  </div>
+
+  <div class="site-footer__inner">
+    <div class="site-footer__col">
+      <h3>Image &amp; Media</h3>
+      <ul>
+        <li><a href="https://pierrecochart.github.io/image-cropper/">Bulk Image Cropper</a></li>
+        <li><a href="https://pierrecochart.github.io/image-background-remover/">Image Background Remover</a></li>
+        <li><a href="https://pierrecochart.github.io/color-palette-generator/">Color Palette Generator</a></li>
+        <li><a href="https://pierrecochart.github.io/duotone-generator/">Duotone Generator</a></li>
+        <li><a href="https://pierrecochart.github.io/image-dithering-tool/">Image Dithering Tool</a></li>
+        <li><a href="https://pierrecochart.github.io/advanced-image-cropping-tool/">Advanced Image Cropper</a></li>
+        <li><a href="https://pierrecochart.github.io/image-to-webp-converter/">Image to WebP Converter</a></li>
+        <li><a href="https://pierrecochart.github.io/quickfav-favicon-maker/">QuickFav Favicon Maker</a></li>
+        <li><a href="https://pierrecochart.github.io/svg-cleaner/">SVG Cleaner</a></li>
+        <li><a href="https://pierrecochart.github.io/code-screenshot-image-creator/">Code Screenshot Generator</a></li>
+      </ul>
+    </div>
+    <div class="site-footer__col">
+      <h3>SEO &amp; Content</h3>
+      <ul>
+        <li><a href="https://pierrecochart.github.io/canonical-generating-tool/">Canonical Generator</a></li>
+        <li><a href="https://pierrecochart.github.io/useful-links-builder/">Useful Links Builder</a></li>
+        <li><a href="https://pierrecochart.github.io/hreflang-generator-tool/">Hreflang Generator</a></li>
+        <li><a href="https://pierrecochart.github.io/website-migration-bulk-redirect-tool/">Bulk Redirect Mapper</a></li>
+        <li><a href="https://pierrecochart.github.io/google-dork-search-operator-tool/">Google Dork Builder</a></li>
+        <li><a href="https://pierrecochart.github.io/keyword-mixer-tool/">Keyword Mixer</a></li>
+        <li><a href="https://pierrecochart.github.io/SERP-Snippet-Viewer-Optimiser/">SERP Simulator</a></li>
+        <li><a href="https://pierrecochart.github.io/seo-bulk-header-audit-tool/">SEO Header Audit</a></li>
+        <li><a href="https://pierrecochart.github.io/faq-generator/">FAQ &amp; Schema Generator</a></li>
+        <li><a href="https://pierrecochart.github.io/internal-link-weaver/">Internal Link Weaver</a></li>
+        <li><a href="https://pierrecochart.github.io/word-character-counter-read-time/">Word &amp; Character Counter</a></li>
+        <li><a href="https://pierrecochart.github.io/ai-blog-summarizer-button-generator/">AI Blog Summarizer</a></li>
+      </ul>
+    </div>
+    <div class="site-footer__col">
+      <h3>PPC &amp; Analytics</h3>
+      <ul>
+        <li><a href="https://pierrecochart.github.io/google-adwords-campaign-architect-tool/">AdWords Architect</a></li>
+        <li><a href="https://pierrecochart.github.io/roas-modeller/">ROAS Modeller</a></li>
+        <li><a href="https://pierrecochart.github.io/statistical-significance-calculator/">Significance Calculator</a></li>
+      </ul>
+    </div>
+    <div class="site-footer__col">
+      <h3>Development</h3>
+      <ul>
+        <li><a href="https://pierrecochart.github.io/document-html-link-remover/">Link Remover Tool</a></li>
+        <li><a href="https://pierrecochart.github.io/word-doc-content-sanitizer/">Word Content Sanitizer</a></li>
+        <li><a href="https://pierrecochart.github.io/github-website-builder/">GitHub Website Builder</a></li>
+        <li><a href="https://pierrecochart.github.io/html-editor/">HTML Editor</a></li>
+        <li><a href="https://pierrecochart.github.io/app-store-event-previewer/">App Store Event Previewer</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="site-footer__bottom">
+    <p>&copy; <span id="footerYear"></span> <a href="https://uk.linkedin.com/in/pierrecochart">Pierre Cochart</a>. Free, open-source, client-side tools.</p>
+    <p>Built &amp; maintained by <a href="https://searchfoundry.co.uk" target="_blank" rel="noopener">The Search Foundry</a></p>
+  </div>
+</footer>
+
+<!-- Floating BMC widget — standard on every page -->
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="PierreCochart" data-description="Support me on Buy me a coffee!" data-message="" data-color="#0F6E8C" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+
+<script>
+    const input = document.getElementById('input-data');
+    const output = document.getElementById('output-code');
+    const serverType = document.getElementById('server-type');
+    const fileInput = document.getElementById('file-input');
+    const mappingPanel = document.getElementById('mapping-panel');
+    const mapSource = document.getElementById('map-source');
+    const mapDest = document.getElementById('map-dest');
+    const toast = document.getElementById('toast');
+
+    let csvData = [];
+
+    input.addEventListener('input', () => generateFromText(input.value));
+    serverType.addEventListener('change', () => {
+        document.getElementById('output-label').textContent = serverType.options[serverType.selectedIndex].text;
+        if (csvData.length > 0) processMappedCsv();
+        else generateFromText(input.value);
+    });
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('file-name').textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            const rows = text.split('\n').map(row => row.split(','));
+
+            if (rows.length < 2) return;
+
+            const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
+            csvData = rows.slice(1);
+
+            mapSource.innerHTML = '';
+            mapDest.innerHTML = '';
+            headers.forEach((h, i) => {
+                const opt = `<option value="${i}">${h}</option>`;
+                mapSource.innerHTML += opt;
+                mapDest.innerHTML += opt;
+            });
+
+            headers.forEach((h, i) => {
+                const cleanH = h.toLowerCase();
+                if (cleanH.includes('old') || cleanH.includes('source') || cleanH.includes('address')) mapSource.value = i;
+                if (cleanH.includes('new') || cleanH.includes('dest') || cleanH.includes('target')) mapDest.value = i;
+            });
+
+            mappingPanel.style.display = 'block';
+        };
+        reader.readAsText(file);
+    };
+
+    function processMappedCsv() {
+        const sIdx = mapSource.value;
+        const dIdx = mapDest.value;
+        let textData = "";
+
+        csvData.forEach(row => {
+            if (row[sIdx] && row[dIdx]) {
+                textData += `${row[sIdx].trim()} ${row[dIdx].trim()}\n`;
+            }
+        });
+        generateFromText(textData);
+    }
+
+    function generateFromText(rawText) {
+        const lines = rawText.split('\n');
+        const type = serverType.value;
+        let result = "";
+
+        if (type === 'apache') result += "RewriteEngine On\n\n";
+        let wpArray = [];
+
+        lines.forEach(line => {
+            if (!line.trim()) return;
+            const parts = line.split(/\s+|,/);
+
+            if (parts.length >= 2) {
+                let oldUrl = parts[0].trim().replace(/"/g, '');
+                let newUrl = parts[1].trim().replace(/"/g, '');
+                let oldPath = oldUrl.replace(/^https?:\/\/[^\/]+/, '');
+                if (!oldPath.startsWith('/')) oldPath = '/' + oldPath;
+
+                if (type === 'apache') result += `Redirect 301 ${oldPath} ${newUrl}\n`;
+                else if (type === 'nginx') result += `rewrite ^${oldPath}$ ${newUrl} permanent;\n`;
+                else if (type === 'wp') {
+                    wpArray.push({
+                        "url": oldPath,
+                        "action_data": {"url": newUrl},
+                        "action_code": 301,
+                        "match_url": "regex"
+                    });
+                }
+            }
         });
 
-        // --- CSV Upload Mode ---
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            document.getElementById('file-name').textContent = file.name;
-
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const text = event.target.result;
-                const rows = text.split('\n').map(row => row.split(','));
-                
-                if (rows.length < 2) return;
-                
-                const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
-                csvData = rows.slice(1);
-
-                // Populate mapping dropdowns
-                mapSource.innerHTML = '';
-                mapDest.innerHTML = '';
-                headers.forEach((h, i) => {
-                    const opt = `<option value="${i}">${h}</option>`;
-                    mapSource.innerHTML += opt;
-                    mapDest.innerHTML += opt;
-                });
-
-                // Auto-suggest mappings based on common SEO terms
-                headers.forEach((h, i) => {
-                    const cleanH = h.toLowerCase();
-                    if (cleanH.includes('old') || cleanH.includes('source') || cleanH.includes('address')) mapSource.value = i;
-                    if (cleanH.includes('new') || cleanH.includes('dest') || cleanH.includes('target')) mapDest.value = i;
-                });
-
-                mappingPanel.style.display = 'block';
-            };
-            reader.readAsText(file);
-        };
-
-        function processMappedCsv() {
-            const sIdx = mapSource.value;
-            const dIdx = mapDest.value;
-            let textData = "";
-            
-            csvData.forEach(row => {
-                if (row[sIdx] && row[dIdx]) {
-                    textData += `${row[sIdx].trim()} ${row[dIdx].trim()}\n`;
-                }
-            });
-            generateFromText(textData);
+        if (type === 'wp') {
+            output.value = JSON.stringify({ "plugin": "redirection", "version": "1.0", "redirects": wpArray }, null, 2);
+        } else {
+            output.value = result;
         }
+    }
 
-        // --- Core Engine ---
-        function generateFromText(rawText) {
-            const lines = rawText.split('\n');
-            const type = serverType.value;
-            let result = "";
+    function copyCode() {
+        if (!output.value) return;
+        navigator.clipboard.writeText(output.value).then(() => {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    }
 
-            if (type === 'apache') result += "RewriteEngine On\n\n";
-            let wpArray = [];
+    document.addEventListener('DOMContentLoaded', function () {
+        var footerYearEl = document.getElementById('footerYear');
+        if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
 
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const parts = line.split(/\s+|,/); // Split by space, tab, or comma
-
-                if (parts.length >= 2) {
-                    let oldUrl = parts[0].trim().replace(/"/g, '');
-                    let newUrl = parts[1].trim().replace(/"/g, '');
-                    let oldPath = oldUrl.replace(/^https?:\/\/[^\/]+/, '');
-                    if (!oldPath.startsWith('/')) oldPath = '/' + oldPath;
-
-                    if (type === 'apache') result += `Redirect 301 ${oldPath} ${newUrl}\n`;
-                    else if (type === 'nginx') result += `rewrite ^${oldPath}$ ${newUrl} permanent;\n`;
-                    else if (type === 'wp') {
-                        wpArray.push({
-                            "url": oldPath,
-                            "action_data": {"url": newUrl},
-                            "action_code": 301,
-                            "match_url": "regex"
-                        });
-                    }
-                }
-            });
-
-            if (type === 'wp') {
-                output.value = JSON.stringify({ "plugin": "redirection", "version": "1.0", "redirects": wpArray }, null, 2);
-            } else {
-                output.value = result;
-            }
-        }
-
-        function copyCode() {
-            if (!output.value) return;
-            navigator.clipboard.writeText(output.value).then(() => {
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2000);
+        var toggle = document.getElementById('navToggle');
+        var nav = document.getElementById('siteNav');
+        if (toggle && nav) {
+            toggle.addEventListener('click', function () {
+                var isOpen = nav.classList.toggle('is-open');
+                toggle.setAttribute('aria-expanded', isOpen);
             });
         }
-    </script>
+        document.querySelectorAll('.has-dropdown > .site-nav__link').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (window.innerWidth > 860) return;
+                var parent = btn.closest('.has-dropdown');
+                var isOpen = parent.classList.toggle('is-open');
+                btn.setAttribute('aria-expanded', isOpen);
+            });
+        });
+    });
+</script>
 </body>
 </html>
